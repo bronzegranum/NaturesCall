@@ -3,7 +3,7 @@
     "file": "naturescall:itemtypes/urineportion.json",
     "op": "replace",
     "path": "/attributes/distillationProps/distilledStack/code",
-    "value": "hydrateordiedrate:waterportion-distilled",
+    "value": "hydrateordiedrate:waterportion-fresh-distilled-clean",
     "dependsOn": [{ "modid": "hydrateordiedrate" }]
   }
 ]

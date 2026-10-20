@@ -1,6 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CakeBuild", "CakeBuild\CakeBuild.csproj", "{B2A52B55-791B-4245-8CB3-9624F428F89E}"
+# Visual Studio Version 18
+VisualStudioVersion = 18.10.12201.205 stable
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CakeBuild", "ZZCakeBuild\CakeBuild.csproj", "{B2A52B55-791B-4245-8CB3-9624F428F89E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NaturesCall", "NaturesCall\NaturesCall.csproj", "{C27F003C-F711-4C00-8F41-407884B0F385}"
 EndProject
@@ -18,5 +21,11 @@ Global
 		{C27F003C-F711-4C00-8F41-407884B0F385}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C27F003C-F711-4C00-8F41-407884B0F385}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C27F003C-F711-4C00-8F41-407884B0F385}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C12BA6D7-7B55-41B2-937D-1EBE199CA13A}
 	EndGlobalSection
 EndGlobal

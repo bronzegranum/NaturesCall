@@ -13,8 +13,6 @@ namespace NaturesCall.Util;
 
 public static class Extensions
 {
-    public static Vec3d NoY(this Vec3d vec) => new Vec3d(vec.X, 0, vec.Z);
-    
     public static void ReceiveCapacity(this Entity entity, float capacity)
     {
         if (!entity.HasBehavior<EntityBehaviorBladder>()) return;

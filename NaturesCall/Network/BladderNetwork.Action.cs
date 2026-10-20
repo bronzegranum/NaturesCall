@@ -1,8 +1,8 @@
-using System;
-using System.Linq;
 using NaturesCall.Bladder;
 using NaturesCall.Config;
 using NaturesCall.Util;
+using System;
+using System.Linq;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
@@ -10,7 +10,9 @@ using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
+using Vintagestory.Client.NoObf;
 using Vintagestory.GameContent;
+using static NaturesCall.Network.PeeMessage;
 
 namespace NaturesCall.Network;
 
@@ -21,11 +23,27 @@ public partial class BladderNetwork
     private void OnServerPeeMessage(PeeMessage.Response response)
     {
         var entity = _capi.World.Player.Entity;
-        SpawnPeeParticles(entity, response.Position,
+        //Added an if statement to check for null blockselection so that players can still pee if looking at entity
+        if (entity.BlockSelection != null)
+        {
+            SpawnPeeParticles(entity, response.Position,
             entity.BlockSelection?.HitPosition,
             ConfigSystem.ConfigClient.UrineColor == "default" ? null : ConfigSystem.ConfigClient.UrineColor,
             response.ShouldDieOnContact,
-            ConfigSystem.ConfigClient.UrineParticleLifetime);
+            ConfigSystem.ConfigClient.UrineParticleLifetime,
+            ConfigSystem.ConfigClient.StreamArc);
+        }
+        else if (ConfigSystem.ConfigServer.UrinateOnEntities)
+        {
+            SpawnPeeParticles(entity, response.Position,
+            entity.EntitySelection?.HitPosition,
+            ConfigSystem.ConfigClient.UrineColor == "default" ? null : ConfigSystem.ConfigClient.UrineColor,
+            response.ShouldDieOnContact,
+            ConfigSystem.ConfigClient.UrineParticleLifetime,
+            ConfigSystem.ConfigClient.StreamArc);
+        }
+        else return;
+        
         EntityBehaviorBladder.PlayPeeSound(entity);
     }
     
@@ -44,7 +62,7 @@ public partial class BladderNetwork
     
     private bool OnPeeKeyPressed(KeyCombination keyCombination)
     {
-        return TryTriggerPeeActionOnClient(true, true);
+        return TryTriggerPeeActionOnClient(false, true);
     }
 
     private bool TryTriggerPeeActionOnClient(bool ignoreOverload = false, bool ignoreExtraKeys = false)
@@ -53,14 +71,37 @@ public partial class BladderNetwork
         var player = world?.Player;
         if (world == null || player == null) return false;
         PromptModeChoiceIfNotSet(player);
-        if (!CanPlayerPee(player.Entity, ignoreOverload, ignoreExtraKeys)) return false;
-        var actionMs = world.ElapsedMilliseconds - _lastPeeMessageTime;
-        _lastPeeTime = world.ElapsedMilliseconds;
-        _lastPeeMessageTime = world.ElapsedMilliseconds;
+        if (!CanPlayerPee(player.Entity, ignoreOverload, ignoreExtraKeys))
+        {
+            //Added this extra bit of code before the return false to produce more particles even if CanPlayerPee says not enough time has passed
+            if (CheckPeeControls(player.Entity, ignoreExtraKeys) && player.Entity.WatchedAttributes.GetTreeAttribute($"{Core.ModId}:bladder").GetFloat("currentlevel") > 0.1f) VisualOnlyPee(player);
+            
+            return false;
+        }
+        var elapsedTime = world.ElapsedMilliseconds;
+        var actionMs = elapsedTime - _lastPeeMessageTime;
+        _lastPeeTime = elapsedTime;
+        _lastPeeMessageTime = elapsedTime;
         if (!actionMs.HasValue) return false;
+        //Added if statement to check if target is block or entity
+        if (player.CurrentBlockSelection == null)
+        {
+            if (!_capi.World.Config.GetBool("UrinateOnEntities"))
+            {
+                return false;
+            }
+            _clientChannel.SendPacket(new PeeMessage.Request()
+            {
+                Position = player.CurrentEntitySelection?.Position,
+                HitPostion = player.CurrentEntitySelection?.HitPosition,
+                Color = ConfigSystem.ConfigClient.UrineColor == "default" ? null : ConfigSystem.ConfigClient.UrineColor,
+                ActionMs = actionMs.Value
+            });
+            return true;
+        }
         _clientChannel.SendPacket(new PeeMessage.Request()
         {
-            Position = player.CurrentBlockSelection?.Position,
+            Position = player.CurrentBlockSelection?.Position.ToVec3d(),
             HitPostion = player.CurrentBlockSelection?.HitPosition,
             Color = ConfigSystem.ConfigClient.UrineColor == "default" ? null : ConfigSystem.ConfigClient.UrineColor,
             ActionMs = actionMs.Value
@@ -80,7 +121,10 @@ public partial class BladderNetwork
     private bool CanPlayerPee(EntityPlayer player, bool ignoreOverload = false, bool ignoreExtraKeys = false)
     {
         if (ignoreOverload) return CheckPeeControls(player, ignoreExtraKeys);
-        return (player.Player.IsBladderOverloaded() || player.World.ElapsedMilliseconds - _lastPeeTime >= PeeActionMs) &&
+        //Old code including IsBladderOverloaded() commented out for reference. Removing it results in peeing being almost uniform whether using the hotkey or rightclick
+        //return (player.Player.IsBladderOverloaded() || player.World.ElapsedMilliseconds - _lastPeeTime >= PeeActionMs) &&
+               //CheckPeeControls(player, ignoreExtraKeys);
+        return player.World.ElapsedMilliseconds - _lastPeeTime >= PeeActionMs &&
                CheckPeeControls(player, ignoreExtraKeys);
     }
 
@@ -99,6 +143,29 @@ public partial class BladderNetwork
         return canPee;
     }
 
+    private void VisualOnlyPee(IClientPlayer player)
+    {
+        if (player.CurrentBlockSelection != null)
+        {
+            var shouldDieOnContact = _capi.World.Config.GetBool("UrineStains") && !(player.Entity.World.BlockAccessor.GetBlock(player.CurrentBlockSelection.Position).SideIsSolid(player.CurrentBlockSelection.Position, player.CurrentBlockSelection.SelectionBoxIndex));
+            SpawnPeeParticles(player.Entity, player.CurrentBlockSelection?.Position.ToVec3d(),
+            player.Entity.BlockSelection?.HitPosition,
+            ConfigSystem.ConfigClient.UrineColor == "default" ? null : ConfigSystem.ConfigClient.UrineColor,
+            shouldDieOnContact,
+            ConfigSystem.ConfigClient.UrineParticleLifetime,
+            ConfigSystem.ConfigClient.StreamArc);
+        }
+        else if (_capi.World.Config.GetBool("UrinateOnEntities"))
+        {
+            SpawnPeeParticles(player.Entity, player.CurrentEntitySelection?.Position,
+            player.Entity.EntitySelection?.HitPosition,
+            ConfigSystem.ConfigClient.UrineColor == "default" ? null : ConfigSystem.ConfigClient.UrineColor,
+            false,
+            ConfigSystem.ConfigClient.UrineParticleLifetime,
+            ConfigSystem.ConfigClient.StreamArc);
+        }
+    }
+
     #endregion
     
     #region Server
@@ -114,24 +181,68 @@ public partial class BladderNetwork
         EntityBehaviorBladder.PlayPeeSound(player.Entity);
         var blockSelection = player.CurrentBlockSelection;
         var world = player.Entity.World;
+        //Added a check to make sure the target is a block to fix crash when peeing on entities
+        if (blockSelection == null)
+        {
+            var entitySelection = player.CurrentEntitySelection;
+            if (entitySelection != null && ConfigSystem.ConfigServer.UrinateOnEntities)
+            {
+                _serverChannel.SendPacket(new PeeMessage.Response() { Position = entitySelection.Position, ShouldDieOnContact = false }, player);
+                DamageSource damageSource = new() { HitPosition = entitySelection.HitPosition, IgnoreInvFrames = false, KnockbackStrength = 0, Source = EnumDamageSource.Player, SourceEntity = player.Entity, SourcePos = player.Entity.Pos.XYZ, Type = EnumDamageType.Injury};
+                entitySelection.Entity.ReceiveDamage(damageSource, 0f);
+                return;
+            }
+            else return;
+        }
         var block = world.BlockAccessor.GetBlock(blockSelection.Position);
         var sideIsSolid = block.SideIsSolid(blockSelection.Position, blockSelection.SelectionBoxIndex);
         var shouldDieOnContact = ConfigSystem.ConfigServer.UrineStains && !sideIsSolid;
-        _serverChannel.SendPacket(new PeeMessage.Response() { Position = blockSelection.Position, ShouldDieOnContact = shouldDieOnContact}, player);
+        _serverChannel.SendPacket(new PeeMessage.Response() { Position = blockSelection.Position.ToVec3d(), ShouldDieOnContact = shouldDieOnContact}, player);
         if (block is BlockLiquidContainerBase container)
         {
-            var waterStack = new ItemStack(world.GetItem(Core.ModId+":urineportion"))
-                {
-                    StackSize = 128
-                };
-            var desiredLiters = drainAmount * 3f/1800; // 3 liters per 1800 hydration
+            var waterStack = new ItemStack(world.GetItem(Core.ModId + ":urineportion"))
+            {
+                StackSize = 128
+            };
+            var desiredLiters = drainAmount * 3f / 1800; // 3 liters per 1800 hydration
             var storedLitres = player.Entity.Attributes.GetFloat($"{Core.ModId}:urineVirtualLiters");
             var totalLiters = desiredLiters + storedLitres;
             var virtualLiters = totalLiters % 0.01f;
             var physicalLiters = totalLiters - virtualLiters;
             var stackSizeIn = container.TryPutLiquid(blockSelection.Position, waterStack, physicalLiters);
             container.DoLiquidMovedEffects(player, waterStack, stackSizeIn, BlockLiquidContainerBase.EnumLiquidDirection.Fill);
-        } else if (block is BlockFarmland)
+        } 
+        else if (block is BlockLiquidContainerTopOpened container2)
+        {
+            var waterStack = new ItemStack(world.GetItem(Core.ModId + ":urineportion"))
+            {
+                StackSize = 128
+            };
+            var desiredLiters = drainAmount * 3f / 1800; // 3 liters per 1800 hydration
+            var storedLitres = player.Entity.Attributes.GetFloat($"{Core.ModId}:urineVirtualLiters");
+            var totalLiters = desiredLiters + storedLitres;
+            var virtualLiters = totalLiters % 0.01f;
+            var physicalLiters = totalLiters - virtualLiters;
+            var stackSizeIn = container2.TryPutLiquid(blockSelection.Position, waterStack, physicalLiters);
+            container2.DoLiquidMovedEffects(player, waterStack, stackSizeIn, BlockLiquidContainerBase.EnumLiquidDirection.Fill);
+        }
+        else if (world.BlockAccessor.GetBlockEntity(blockSelection.Position) is BlockEntityGroundStorage beg &&
+                    beg.GetSlotAt(blockSelection) is ItemSlot peeIntoSlot &&
+                    peeIntoSlot.Itemstack?.Block is BlockLiquidContainerTopOpened begCnt)
+        {
+            var waterStack = new ItemStack(world.GetItem(Core.ModId + ":urineportion"))
+            {
+                StackSize = 128
+            };
+            var desiredLiters = drainAmount * 3f / 1800; // 3 liters per 1800 hydration
+            var storedLitres = player.Entity.Attributes.GetFloat($"{Core.ModId}:urineVirtualLiters");
+            var totalLiters = desiredLiters + storedLitres;
+            var virtualLiters = totalLiters % 0.01f;
+            var physicalLiters = totalLiters - virtualLiters;
+            if (begCnt.TryPutLiquid(peeIntoSlot.Itemstack, waterStack, physicalLiters) == 0) return;
+            beg.MarkDirty(true);
+        }
+        else if (block is BlockFarmland)
         {
             FertiliseFarmland(world, blockSelection.Position);
         } 
@@ -201,18 +312,20 @@ public partial class BladderNetwork
         }
     }
 
-    private static void SpawnPeeParticles(Entity byEntity, BlockPos pos, Vec3d hitPos, string color = null, bool shouldDieOnContact = true, float particleLifetime = 1f)
+    //Added a calculation which will change the height the particles spawn from to be roughly half height, particleSpeed is how long it takes to reach the target point
+    private static void SpawnPeeParticles(Entity byEntity, Vec3d pos, Vec3d hitPos, string color = null, bool shouldDieOnContact = true, float particleLifetime = 1f, float particleSpeed = 0.5f)
     {
         if (hitPos == null || pos == null) return;
-        var entityPos = byEntity.Pos.XYZ.AddCopy(byEntity.LocalEyePos.SubCopy(0, 0.2, 0));
-        var posVec = pos.ToVec3d().AddCopy(hitPos);
+        var entityPos = byEntity.Pos.XYZ.AddCopy(byEntity.LocalEyePos.SubCopy(0, byEntity.LocalEyePos.Y/2, 0));
+        var posVec = pos.AddCopy(hitPos);
         var dist = (posVec - entityPos);
-        var addVertical = new Vec3f(0, (float)(0.5f*Math.Sqrt(dist.NoY().LengthSq())), 0);
-        var velocity = 2.5f * dist.ToVec3f().AddCopy(addVertical).Normalize();
-        var xyz = entityPos.AddCopy(0.5 * dist.Normalize());
+        var velocity = new Vec3f((float)dist.X / particleSpeed, ((float)dist.Y / particleSpeed) + 0.5f*(6.0f*particleSpeed), (float)dist.Z / particleSpeed);
+        //var addVertical = new Vec3f(0, (float)(0.5f*Math.Sqrt(dist.NoY().LengthSq())), 0);
+        //var velocity = 2.5f * dist.ToVec3f().AddCopy(addVertical).Normalize();
         var one = new Vec3f(1, 1, 1);
-        
-        _waterParticles = new SimpleParticleProperties(1f, 1f, -1, xyz, new Vec3d(), velocity.AddCopy(0.2f*one), velocity.AddCopy(-0.2f*one), minSize: 0.33f, maxSize: 0.75f)
+        var xyz = entityPos.AddCopy(0.5 * one.ToVec3d());
+
+        _waterParticles = new SimpleParticleProperties(1f, 1f, -1, entityPos, entityPos, velocity.AddCopy(0.2f * one), velocity.AddCopy(-0.2f * one), minSize: 0.33f, maxSize: 0.75f)
         {
             AddPos = new Vec3d(),
             SizeEvolve = new EvolvingNatFloat(EnumTransformFunction.LINEAR, -1f),

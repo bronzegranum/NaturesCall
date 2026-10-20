@@ -14,6 +14,7 @@
   "Config.Setting.UrineDrainRate": "Taux d'évacuation de l'urine",
   "Config.Setting.UrineNutrientLevels": "Quantité de nutriments fournie par l'urine",
   "Config.Setting.UrineStains": "Uriner sur des blocs les tache",
+  "Config.Setting.UrinateOnEntities": "Uriner sur des entités",
 
   "Config.SettingsAdvanced": "Paramètres avancés",
   "Config.Setting.UrineStainableMaterials": "Matériaux tachables par l'urine",
@@ -27,6 +28,7 @@
   "Config.Setting.BladderBarOverloadColor": "Couleur de surcharge de la barre de vessie",
   "Config.Setting.UrineColor": "Couleur de l'urine",
   "Config.Setting.OnlyPeeWithHotkey": "Uriner uniquement en appuyant sur le raccourci (pas de clic droit)",
+  "Config.Setting.StreamArc": "Hauteur arc du jet",
 
   "Config.SettingsCompat": "Paramètres de compatibilité (Nécessite un rechargement)",
   "Config.Setting.ElephantBladderCapacityMultiplier": "Multiplicateur de capacité de vessie d'éléphant (xSkills)",

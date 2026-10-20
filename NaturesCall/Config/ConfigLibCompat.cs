@@ -45,6 +45,7 @@ public partial class ConfigLibCompat
         config.UrineColor = OnInputText(id, config.UrineColor, nameof(config.UrineColor));
         config.OnlyPeeWithHotkey = OnCheckBox(id, config.OnlyPeeWithHotkey, nameof(config.OnlyPeeWithHotkey));
         config.UrineParticleLifetime = OnInputFloat(id, config.UrineParticleLifetime, nameof(config.UrineParticleLifetime), 1f);
+        config.StreamArc = OnInputFloat(id, config.StreamArc, nameof(config.StreamArc), 0.1f);
     }
 
     private void EditConfigServer(string id, ControlButtons buttons, ICoreAPI api)
@@ -52,6 +53,7 @@ public partial class ConfigLibCompat
         if (buttons.Save) ModConfig.WriteConfig(api, Constants.ConfigServerName, ConfigSystem.ConfigServer);
         if (buttons.Restore) ConfigSystem.ConfigServer = ModConfig.ReadConfig<ConfigServer>(api, Constants.ConfigServerName);
         if (buttons.Defaults) ConfigSystem.ConfigServer = new ConfigServer(api);
+        api.World.Config.SetBool("UrinateOnEntities", ConfigSystem.ConfigServer.UrinateOnEntities);
         BuildSettingsServer(ConfigSystem.ConfigServer, id);
     }
     
@@ -69,6 +71,7 @@ public partial class ConfigLibCompat
             DisplayEnumFloatDictionary(config.UrineNutrientLevels, nameof(config.UrineNutrientLevels), id);
             config.UrineStains = OnCheckBox(id, config.UrineStains, nameof(config.UrineStains));
             config.SpillWashStains = OnCheckBox(id, config.SpillWashStains, nameof(config.SpillWashStains));
+            config.UrinateOnEntities = OnCheckBox(id, config.UrinateOnEntities, nameof(config.UrinateOnEntities));
             ImGui.Unindent();
         }
         if (ImGui.CollapsingHeader(Lang.Get(settingsAdvanced) + $"##settingAdvanced-{id}"))

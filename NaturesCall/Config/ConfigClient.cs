@@ -15,6 +15,7 @@ public class ConfigClient : ModConfig
     public string UrineColor { get; set; } = "default";
     public bool OnlyPeeWithHotkey { get; set; }
     public float UrineParticleLifetime { get; set; } = 15f;
+    public float StreamArc { get; set; } = 0.5f;
 
     public ConfigClient(ICoreAPI api, ConfigClient previousConfig = null)
     {
@@ -28,5 +29,6 @@ public class ConfigClient : ModConfig
         HideBladderBarAt = previousConfig.HideBladderBarAt;
         UrineColor = previousConfig.UrineColor;
         OnlyPeeWithHotkey = previousConfig.OnlyPeeWithHotkey;
+        StreamArc = previousConfig.StreamArc;
     }
 }

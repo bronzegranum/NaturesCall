@@ -1,10 +1,10 @@
 <Project>
     <!-- Set your vs installation here! -->
     <PropertyGroup>
-        <VINTAGE_STORY>$(VINTAGE_STORY_1_21)</VINTAGE_STORY>
+		<!-- <VINTAGE_STORY>$(VINTAGE_STORY_1_22)</VINTAGE_STORY> -->
         <WorldName>[TEST] NaturesCall</WorldName>
         <TestDir>$(SolutionDir)/test</TestDir>
         <TestDataPath>$(TestDir)/VintagestoryData</TestDataPath>
-        <DevModPath>$(HOME)/Library/Application Support/VintagestoryDev/Mods</DevModPath>
+		<!-- <DevModPath>$(HOME)/Library/Application Support/VintagestoryDev/Mods</DevModPath> -->
     </PropertyGroup>
 </Project>

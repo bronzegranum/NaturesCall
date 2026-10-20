@@ -10,7 +10,7 @@ namespace NaturesCall.Compatibility;
 public class XSkillsCompat : ModSystem
 {
     public override bool ShouldLoad(ICoreAPI api) => api.ModLoader.IsModEnabled("xlib") 
-                                                    || api.ModLoader.IsModEnabled("xlibrabite"); // 1.21 unofficial patch
+                                                    || api.ModLoader.IsModEnabled("xlibfork"); // 1.22 unofficial patch
     public override void Start(ICoreAPI api)
     {
         var xLeveling = api.ModLoader.GetModSystem<XLeveling>();

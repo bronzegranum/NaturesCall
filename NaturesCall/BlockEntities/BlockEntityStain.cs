@@ -20,7 +20,8 @@ public class BlockEntityStain : BlockEntity
 
     private void OnGameTick(float dt)
     {
-        var shouldDie = Api.World.BlockAccessor.GetBlock(Pos.UpCopy()).BlockMaterial == EnumBlockMaterial.Liquid ||
+        //Originally EnumBlockMaterial.Liquid  No longer available, so changed to Water
+        var shouldDie = Api.World.BlockAccessor.GetBlock(Pos.UpCopy()).BlockMaterial == EnumBlockMaterial.Water ||
                         Api.World.BlockAccessor.GetDistanceToRainFall(Pos, 2) < 2;
         if (shouldDie)
             Api.World.BlockAccessor.BreakDecor(Pos);

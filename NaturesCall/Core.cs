@@ -44,6 +44,8 @@ public class Core : ModSystem
         sapi.Event.OnEntityLoaded += AddEntityBehaviors;
         sapi.Event.PlayerJoin += (player) => OnPlayerJoin(player.Entity);
         Commands.Register(sapi);
+        sapi.World.Config.SetBool("UrinateOnEntities", ConfigSystem.ConfigServer.UrinateOnEntities);
+        sapi.World.Config.SetBool("UrineStains", ConfigSystem.ConfigServer.UrineStains);
         Logger.StoryEvent("Nature calls...");
         Logger.Event("Loaded server side");
     }

@@ -15,6 +15,7 @@ public class ConfigServer : ModConfig
     public float UrineDrainRate { get; set; } = 3f;
     public bool UrineStains { get; set; } = false;
     public bool SpillWashStains { get; set; } = true;
+    public bool UrinateOnEntities { get; set; } = true;
     
     // Advanced settings
     public Dictionary<EnumSoilNutrient, float> UrineNutrientLevels { get; set; } = Constants.UrineNutrientLevels;
@@ -29,6 +30,7 @@ public class ConfigServer : ModConfig
         {
             return;
         }
+        BladderFillMultiplier = previousConfigServer.BladderFillMultiplier;
         BladderCapacity = previousConfigServer.BladderCapacity;
         BladderCapacityOverload = previousConfigServer.BladderCapacityOverload;
         BladderWalkSpeedDebuff = previousConfigServer.BladderWalkSpeedDebuff;
@@ -36,6 +38,7 @@ public class ConfigServer : ModConfig
         UrineDrainRate = previousConfigServer.UrineDrainRate;
         UrineStains = previousConfigServer.UrineStains;
         SpillWashStains = previousConfigServer.SpillWashStains;
+        UrinateOnEntities = previousConfigServer.UrinateOnEntities;
         UrineNutrientLevels = previousConfigServer.UrineNutrientLevels;
         UrineStainableMaterials = previousConfigServer.UrineStainableMaterials;
         ElephantBladderCapacityMultiplier = previousConfigServer.ElephantBladderCapacityMultiplier;

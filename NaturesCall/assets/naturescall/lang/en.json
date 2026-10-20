@@ -14,6 +14,7 @@
   "Config.Setting.UrineDrainRate": "Rate of urine drain",
   "Config.Setting.UrineNutrientLevels": "Amount of nutrients given by urine",
   "Config.Setting.UrineStains": "Urinating on blocks will stain them",
+  "Config.Setting.UrinateOnEntities": "Urinating on entities",
   
   "Config.SettingsAdvanced": "Advanced Settings",
   "Config.Setting.UrineStainableMaterials": "Urine Stainable Materials",
@@ -28,6 +29,7 @@
   "Config.Setting.UrineColor": "Urine color",
   "Config.Setting.OnlyPeeWithHotkey": "Urinate only when pressing hotkey (no right click)",
   "Config.Setting.UrineParticleLifetime": "Lifetime of urine particles (only works with Urine Stains disabled on the server)",
+  "Config.Setting.StreamArc": "Stream Arc Height",
 
   "Config.SettingsCompat": "Compatibility Settings (Require restart)",
   "Config.Setting.ElephantBladderCapacityMultiplier": "Elephant Bladder skill hydration boost (xSkills)",
